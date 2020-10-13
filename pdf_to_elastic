@@ -1,0 +1,43 @@
+#
+# Created by Satish Bomma
+# Utility Script to read directory and process text files and ingest them into Elastic
+# Mapping (filename, Content, Date)
+#
+
+#!/bin/bash
+echo "Beginning ingest script"
+
+echo "Please enter the directory to ingest"
+
+INGEST_DIR=/Users/satishbomma/sysco/*
+for FILE_NAME in $INGEST_DIR
+ do
+  OIFS="$IFS"
+  IFS=$'\n'  
+  echo $file
+  FILE_NAME="$(echo "$FILE_NAME")"
+  if [[ -d $FILE_NAME ]]; then
+    echo do nothing to $FILE_NAME
+  else
+    echo "Converting $FILE_NAME to base64"
+    base_64="$(cat $FILE_NAME | base64)"
+    echo $_BASE64 conversion done
+    echo - Setting up a few things like file name, date
+    datetime=`date +%m-%d-%Y`
+    echo - 
+    filename="$(basename $FILE_NAME)"
+    echo filename = $filename
+    echo base_64 = $base_64
+    echo date = $datetime
+    echo - --
+    curl -X POST -u elastic:k5jndsujNWfUWwznvXL4q7sq "https://22afb9ef00734a1ebf511f0c0600409e.us-central1.gcp.cloud.es.io:9243/my-index/doc?pipeline=attachment&pretty" -H 'Content-Type: application/json' -d'
+    {
+       "filename": "'"$filename"'",
+       "data": "'"$base_64"'",
+       "dt": "'"$datetime"'"
+    }
+   '
+  fi
+  IFS="$OIFS"
+ done
+
